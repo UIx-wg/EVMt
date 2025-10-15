@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>EVMt Smart Contract Creator Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=0">
   <!-- AERO, glass, blue/pink theme -->
   <style>
     :root {
@@ -340,6 +340,66 @@
   </style>
   <!-- Web3.js (for wallet integration) -->
   <script src="https://cdn.jsdelivr.net/npm/web3@4.6.0/dist/web3.min.js"></script>
+
+<script>
+    import { Web3Auth, WEB3AUTH_NETWORK, WALLET_CONNECTORS, MFA_LEVELS } from '@web3auth/modal'
+
+const web3auth = new Web3Auth({
+  clientId: 'BJxn5I3bhU-uhDoK2AQH0jwkjV3hUreulZsIkYYiLCd0yXJhaqlPZhdeNsA8ryoBRUkhUv0QtevwA9JidLtx0Ec',
+  web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_MAINNET,
+  modalConfig: {
+    connectors: {
+      [WALLET_CONNECTORS.AUTH]: {
+        label: 'auth',
+        loginMethods: {
+          google: {
+            name: 'google login',
+            // logoDark: "url to your custom logo which will shown in dark mode",
+          },
+          facebook: {
+            name: 'facebook login',
+            showOnModal: true, // hides the facebook option
+          },
+          email_passwordless: {
+            name: 'email passwordless login',
+            showOnModal: true,
+            authConnectionId: 'w3a-email_passwordless-demo',
+          },
+          sms_passwordless: {
+            name: 'sms passwordless login',
+            showOnModal: true,
+            authConnectionId: 'w3a-sms_passwordless-demo',
+          },
+        },
+        showOnModal: true, // set to false to hide all social login methods
+      },
+    },
+    hideWalletDiscovery: true, // set to true to hide external wallets discovery
+  },
+  mfaLevel: MFA_LEVELS.MANDATORY,
+})
+
+    await web3auth.connect()
+// Use with a Solana library
+const solanaWallet = new SolanaWallet(web3auth.provider)
+
+    await web3auth.connect()
+// Use with ethers.js
+const ethProvider = new ethers.BrowserProvider(web3auth.provider)
+// OR
+// Use with viem
+const walletClient = createWalletClient({
+  chain: getViewChain(web3auth.provider),
+  transport: custom(web3auth.provider),
+})
+
+
+await web3auth.init()
+    
+  </script>
+
+
+  
 </head>
 <body>
   <!-- Moving Blurred Aero Circles -->
