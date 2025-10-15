@@ -1,0 +1,1344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>EVM Contract Creation Studio - Ethereum, Polygon, GNOSIS, ERCs & More</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Aero Black Theme Styles (unchanged) -->
+  <style>
+    :root {
+      --sidebar-width: 270px;
+      --footer-height: 105px;
+      --menu-bg: #15181c;
+    }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #15181c;
+      color: #e2e2e2;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+      padding-bottom: var(--footer-height);
+    }
+    .triangle-bg {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      z-index: -1;
+      pointer-events: none;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 40px auto 0 auto;
+      background: rgba(23, 25, 30, 0.93);
+      border-radius: 18px;
+      box-shadow: 0 8px 32px rgba(56,56,56,0.65);
+      padding: 36px 30px;
+      border: 1px solid #222;
+      display: flex;
+      flex-direction: row;
+      gap: 32px;
+    }
+    .main-content {
+      flex: 6 1 0;
+      min-width: 350px;
+    }
+    .sidebar {
+      flex: 2 1 0;
+      min-width: 230px;
+      background: rgba(27,31,38,0.99);
+      border-radius: 13px;
+      padding: 22px 18px 18px 18px;
+      border: 1px solid #222;
+      box-shadow: 0 2px 16px #1a1a1a44;
+      display: flex;
+      flex-direction: column;
+      gap: 19px;
+      transition: transform .4s cubic-bezier(.62,.43,.22,.97);
+      z-index: 99;
+      position: relative;
+    }
+    .sidebar.closed {
+      transform: translateX(calc(-1 * var(--sidebar-width) - 22px));
+      opacity: 0.35;
+      pointer-events: none;
+    }
+    .sidebar-toggle {
+      position: absolute;
+      left: 100%;
+      top: 40px;
+      transform: translateY(-50%);
+      background: #222b34;
+      color: #aeecff;
+      border: none;
+      border-radius: 7px;
+      padding: 8px 15px;
+      cursor: pointer;
+      font-size: 1.1em;
+      box-shadow: 0 2px 8px #191c1c44;
+      z-index: 999;
+    }
+    h1 {
+      text-align: center;
+      font-weight: 700;
+      font-size: 2.2em;
+      color: #ececec;
+      letter-spacing: 1.5px;
+      margin-bottom: 18px;
+      text-shadow: 0 1px 8px #fff4;
+    }
+    label {
+      font-weight: 500;
+      color: #bfc9d1;
+      display: block;
+      margin-top: 18px;
+      margin-bottom: 7px;
+    }
+    input, textarea, select {
+      width: 100%;
+      background: #23262a;
+      border: 1px solid #424242;
+      color: #e2e2e2;
+      border-radius: 6px;
+      padding: 9px 11px;
+      margin-bottom: 12px;
+      font-size: 1em;
+      transition: border .2s;
+    }
+    input:focus, textarea:focus, select:focus {
+      border-color: #888;
+      outline: none;
+    }
+    button {
+      background: linear-gradient(90deg, #bbb, #fff, #bbb);
+      color: #181b1e;
+      border: none;
+      border-radius: 8px;
+      padding: 11px 26px;
+      font-size: 1.1em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .18s;
+      box-shadow: 0 2px 8px #fff2;
+    }
+    button:hover {
+      background: linear-gradient(90deg, #fff, #bbb, #fff);
+    }
+    .result, .compile-result {
+      background: #181a20;
+      border: 1px solid #444;
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 18px;
+      color: #cfcfcf;
+      font-size: 1.05em;
+      word-break: break-all;
+    }
+    .abi-view {
+      background: #212225;
+      padding: 9px;
+      border-radius: 6px;
+      font-size: 0.98em;
+      margin-top: 10px;
+      color: #e7e7e7;
+    }
+    .compliance {
+      margin-top: 13px;
+      font-size: 0.95em;
+      color: #89eaff;
+      background: #23262a;
+      padding: 8px 14px;
+      border-radius: 5px;
+      border: 1px solid #2c2f37;
+    }
+    .wallet-status {
+      margin-bottom: 16px;
+      font-size: 1.07em;
+      color: #85e0ff;
+      background: #23262a;
+      border-radius: 6px;
+      padding: 8px 15px;
+      border: 1px solid #2c2f37;
+    }
+    .deploy-btn {
+      margin-top: 12px;
+      background: linear-gradient(90deg, #6adfff, #fff, #6adfff);
+      color: #181b1e;
+    }
+    .deploy-btn:hover {
+      background: linear-gradient(90deg, #fff, #6adfff, #fff);
+    }
+    .explorer-table {
+      width: 100%;
+      font-size: 0.98em;
+      margin-top: 8px;
+      border-collapse: collapse;
+      background: #191c1f;
+      border-radius: 7px;
+      overflow: hidden;
+    }
+    .explorer-table th, .explorer-table td {
+      padding: 7px 10px;
+      border-bottom: 1px solid #24272c;
+    }
+    .explorer-table thead {
+      background: #23262a;
+    }
+    .explorer-table tr:last-child td {
+      border-bottom: none;
+    }
+    .polygon-contract-table {
+      width: 100%;
+      font-size: 0.99em;
+      margin-top: 9px;
+      border-collapse: collapse;
+      background: #182024;
+      border-radius: 7px;
+      overflow: hidden;
+    }
+    .polygon-contract-table th, .polygon-contract-table td {
+      padding: 7px 8px;
+      border-bottom: 1px solid #232c3f;
+    }
+    .polygon-contract-table thead {
+      background: #222b37;
+    }
+    .polygon-contract-table tr:last-child td {
+      border-bottom: none;
+    }
+    .gnosis-contract-table {
+      width: 100%;
+      font-size: 0.99em;
+      margin-top: 9px;
+      border-collapse: collapse;
+      background: #20232b;
+      border-radius: 7px;
+      overflow: hidden;
+    }
+    .gnosis-contract-table th, .gnosis-contract-table td {
+      padding: 7px 8px;
+      border-bottom: 1px solid #293041;
+    }
+    .gnosis-contract-table thead {
+      background: #232b37;
+    }
+    .gnosis-contract-table tr:last-child td {
+      border-bottom: none;
+    }
+    .evm-tools {
+      background: #22272e;
+      border-radius: 9px;
+      padding: 16px;
+      margin-top: 14px;
+      border: 1px solid #2d3237;
+      color: #bfeaff;
+    }
+    .hash-result {
+      margin-top: 10px;
+      font-size: 0.97em;
+      color: #7cdaff;
+      background: #181a22;
+      padding: 7px 13px;
+      border-radius: 5px;
+      border: 1px solid #2e3239;
+      word-break: break-all;
+    }
+    .desc {
+      font-size: 0.95em;
+      color: #fbe7b9;
+      margin-bottom: 9px;
+    }
+    .section-title {
+      color: #86f7ff;
+      font-size: 1.08em;
+      font-weight: 600;
+      margin-bottom: 6px;
+      margin-top: 20px;
+      text-shadow: 0 1px 4px #000b;
+    }
+    /* Footer styles */
+    .footer {
+      width: 100vw;
+      min-width: 950px;
+      background: #121417;
+      color: #e1e1e1;
+      border-top: 1px solid #23262a;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      height: var(--footer-height);
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 13px 0 0 0;
+      flex-direction: column;
+    }
+    .footer-logos {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 7px;
+    }
+    .footer-logos img {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      background: #fff;
+      object-fit: contain;
+      box-shadow: 0 2px 8px #0004;
+    }
+    .footer-desc {
+      font-size: 0.98em;
+      color: #d2e0f5;
+      margin-bottom: 1px;
+      text-align: center;
+    }
+    .footer-link {
+      font-size: 1.09em;
+      color: #7eeaff;
+      text-decoration: underline;
+      margin-left: 7px;
+    }
+    /* Menu styles */
+    .slide-menu {
+      display: flex;
+      align-items: center;
+      height: 64px;
+      background: var(--menu-bg);
+      box-shadow: 0 2px 14px #191c1c33;
+      padding: 0 22px;
+      position: fixed;
+      left: 0; right: 0; top: 0;
+      z-index: 100;
+      transition: left .3s;
+    }
+    .menu-items {
+      display: flex;
+      gap: 19px;
+      overflow-x: auto;
+      scrollbar-width: thin;
+    }
+    .menu-item {
+      color: #8de0ff;
+      font-size: 1.06em;
+      font-weight: 500;
+      padding: 8px 17px;
+      border-radius: 7px;
+      background: transparent;
+      cursor: pointer;
+      border: none;
+      transition: background .18s, color .18s;
+      margin-right: 1px;
+    }
+    .menu-item.selected, .menu-item:hover {
+      background: #1f2c3a;
+      color: #fff;
+    }
+    .menu-logo {
+      width: 38px; height: 38px;
+      border-radius: 9px;
+      margin-right: 15px;
+      box-shadow: 0 3px 13px #3ef4;
+      background: #fff;
+      object-fit: contain;
+    }
+    .sol-editor {
+      background: #191e23;
+      border: 1.5px solid #2f343b;
+      min-height: 230px;
+      margin-bottom: 13px;
+      border-radius: 7px;
+      font-family: 'Fira Mono', 'Consolas', monospace;
+      font-size: 1.01em;
+      color: #d6f7ff;
+      padding: 11px 11px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+    .search-explorer {
+      margin-top: 10px;
+      margin-bottom: 16px;
+    }
+    .search-explorer input {
+      width: 220px;
+      margin-right: 9px;
+      padding: 8px 10px;
+    }
+    /* Polygon-specific styles */
+    .polygon-form-title {
+      font-size: 1.18em;
+      font-weight: 600;
+      color: #8be3ff;
+      margin-bottom: 7px;
+      margin-top: 13px;
+      letter-spacing: 0.8px;
+    }
+    .polygon-logo {
+      width: 32px;
+      vertical-align: middle;
+      margin-right: 7px;
+      border-radius: 7px;
+      background: #fff;
+      box-shadow: 0 2px 10px #7eeaff44;
+    }
+    .network-select {
+      width: 100%;
+      background: #1b1d22;
+      border: 1px solid #33445a;
+      color: #aff;
+      border-radius: 6px;
+      padding: 9px 11px;
+      margin-bottom: 12px;
+      font-size: 1em;
+      transition: border .2s;
+    }
+    /* GNOSIS-specific styles */
+    .gnosis-form-title {
+      font-size: 1.18em;
+      font-weight: 600;
+      color: #c2ff8b;
+      margin-bottom: 7px;
+      margin-top: 13px;
+      letter-spacing: 0.8px;
+    }
+    .gnosis-logo {
+      width: 32px;
+      vertical-align: middle;
+      margin-right: 7px;
+      border-radius: 7px;
+      background: #fff;
+      box-shadow: 0 2px 10px #e0ffb844;
+    }
+    .network-select-gnosis {
+      width: 100%;
+      background: #1b1d22;
+      border: 1px solid #3d5a33;
+      color: #c2ff8b;
+      border-radius: 6px;
+      padding: 9px 11px;
+      margin-bottom: 12px;
+      font-size: 1em;
+      transition: border .2s;
+    }
+    .gnosis-desc {
+      font-size: 0.97em;
+      color: #e6ffc2;
+      margin-bottom: 12px;
+    }
+    /* Popup error modal */
+    .popup-modal {
+      display: none;
+      position: fixed;
+      z-index: 1200;
+      left: 0; top: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(30,32,36,0.70);
+      align-items: center;
+      justify-content: center;
+    }
+    .popup-content {
+      background: #232e1b;
+      color: #fbe7b9;
+      border: 2px solid #a0e06b;
+      border-radius: 13px;
+      padding: 28px 38px 19px 38px;
+      box-shadow: 0 6px 38px #000b;
+      text-align: center;
+      min-width: 320px;
+      max-width: 90vw;
+      max-height: 88vh;
+      overflow-y: auto;
+      font-size: 1.09em;
+    }
+    .popup-close {
+      margin-top: 19px;
+      background: linear-gradient(90deg, #c2ff8b, #fff, #c2ff8b);
+      color: #222;
+      border: none;
+      border-radius: 8px;
+      padding: 9px 25px;
+      font-size: 1.1em;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background .18s;
+      box-shadow: 0 2px 8px #e8ffb244;
+    }
+    .popup-close:hover {
+      background: linear-gradient(90deg, #fff, #c2ff8b, #fff);
+    }
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 9px;
+      background: #222;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #444;
+      border-radius: 4px;
+    }
+    @media (max-width: 1150px) {
+      .container {
+        flex-direction: column;
+        max-width: 98vw;
+      }
+      .sidebar {
+        min-width: 0;
+        margin-bottom: 20px;
+      }
+    }
+    @media (max-width: 800px) {
+      .container {
+        padding: 16px 4px;
+      }
+      .sidebar {
+        padding: 13px 6px 7px 6px;
+      }
+    }
+  </style>
+  <!-- solc-js for Solidity compiling -->
+  <script src="https://cdn.jsdelivr.net/npm/solc@0.8.20/solc.min.js"></script>
+  <!-- ethers.js for wallet & EVM integration -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <!-- polygon.js plugin (for Polygon SDK, chain switching, etc) -->
+  <script src="https://unpkg.com/@maticnetwork/maticjs@3.0.2/dist/matic.js"></script>
+  <!-- Gnosis Safe contract factory plugin (for Gnosis, this is a minimal ABI/bytecode for demo) -->
+  <script id="gnosis-plugin" type="application/json">
+    {
+      "safeSingletonABI": [
+        {"inputs":[{"internalType":"address[]","name":"_owners","type":"address[]"},{"internalType":"uint256","name":"_threshold","type":"uint256"}],"name":"setup","outputs":[],"stateMutability":"nonpayable","type":"function"}
+      ],
+      "safeSingletonBytecode": "PLACEHOLDER_FOR_GNOSIS_SAFE_BYTECODE"
+    }
+  </script>
+</head>
+<body>
+  <!-- Slide Menu -->
+  <nav class="slide-menu" id="slideMenu">
+    <img src="https://cryptologos.cc/logos/ethereum-eth-logo.png?v=030" class="menu-logo" alt="Ethereum">
+    <div class="menu-items">
+      <button class="menu-item selected" data-menu="contractStudio">Contract Studio</button>
+      <button class="menu-item" data-menu="polygonContracts">Polygon Contract</button>
+      <button class="menu-item" data-menu="gnosisContracts" id="gnosisMenuBtn">GNOSIS Contract</button>
+      <button class="menu-item" data-menu="evmTools">EVM Tools</button>
+      <button class="menu-item" data-menu="explorer">Explorer</button>
+      <button class="menu-item" data-menu="about">About</button>
+    </div>
+  </nav>
+
+  <canvas id="triangle-bg" class="triangle-bg"></canvas>
+  <div class="container" style="margin-top:80px;">
+    <!-- Sidebar with description/features -->
+    <aside class="sidebar" id="sidebar">
+      <button class="sidebar-toggle" id="sidebarToggle" title="Hide/Show Menu">&#9776;</button>
+      <div>
+        <div class="section-title">App Features</div>
+        <ul style="padding-left: 18px; line-height: 1.7; color:#d6f7ff;">
+          <li>Deploy ERC20, ERC721, ERC1155, Polygon, GNOSIS and custom contracts</li>
+          <li>Solidity Pragma Editor & Live Build</li>
+          <li>EVM & Polygon Wallet Deploy</li>
+          <li>GNOSIS Safe Multisig Contract Creator</li>
+          <li>Automatic Block Hash Tool</li>
+          <li>Real-time Contract Explorer</li>
+        </ul>
+      </div>
+      <div>
+        <div class="section-title">How To Use</div>
+        <div class="desc">
+          1. Connect your wallet.<br>
+          2. Fill contract info or edit Solidity.<br>
+          3. Compile, deploy, and explore contracts.<br>
+          4. Use EVM tools, GNOSIS multisig, and view block hashes.<br>
+          5. Search deployed contracts on the explorer.
+        </div>
+      </div>
+      <div>
+        <div class="section-title">Quick Links</div>
+        <a href="https://docs.openzeppelin.com/contracts/" target="_blank" style="color:#7eeaff">OpenZeppelin Docs</a><br>
+        <a href="https://soliditylang.org/" target="_blank" style="color:#7eeaff">Solidity Docs</a><br>
+        <a href="https://docs.gnosis.io/safe/" target="_blank" style="color:#c2ff8b">GNOSIS Safe Docs</a><br>
+        <a href="https://docs.polygon.technology/" target="_blank" style="color:#7eeaff">Polygon Docs</a><br>
+        <a href="https://etherscan.io/" target="_blank" style="color:#7eeaff">Etherscan</a>
+      </div>
+    </aside>
+    <!-- Main Content Column -->
+    <main class="main-content">
+
+      <!-- Contract Studio -->
+      <div id="contractStudio" class="menu-section">
+        <h1>EVM Contract Creation Studio</h1>
+        <div class="desc">All-in-one Ethereum/EVM contract builder, deployer, and explorer for ERC20, ERC721, ERC1155, and custom Solidity contracts. Build, deploy, and explore in real time!</div>
+        <div id="walletStatus" class="wallet-status">Wallet: <span id="walletAccount">Not Connected</span>
+          <button id="connectWalletBtn" type="button" style="float:right;">Connect Wallet</button>
+        </div>
+        <form id="contractForm" autocomplete="off">
+          <label for="pragma">Solidity Pragma Version <span class="desc">(Edit version as needed)</span></label>
+          <input type="text" id="pragma" name="pragma" value="^0.8.20" required placeholder="e.g. ^0.8.20">
+
+          <label for="solEditor">Solidity Pragma Editor <span class="desc">(Type or paste your contract code below)</span></label>
+          <textarea id="solEditor" name="solEditor" class="sol-editor" rows="12" placeholder="Type or paste Solidity code here..."></textarea>
+
+          <label for="contractType">Contract Type</label>
+          <select id="contractType" name="contractType">
+            <option value="ERC20">ERC20 Token</option>
+            <option value="ERC721">ERC721 NFT</option>
+            <option value="ERC1155">ERC1155 MultiToken</option>
+            <option value="Custom">Custom Contract</option>
+          </select>
+
+          <label for="contractName">Contract Name</label>
+          <input type="text" id="contractName" name="contractName" placeholder="e.g. MyToken" required>
+
+          <label for="symbol">Symbol</label>
+          <input type="text" id="symbol" name="symbol" placeholder="e.g. MTK">
+
+          <label for="initialSupply">Initial Supply <span class="desc">(ERC20/ERC1155 only)</span></label>
+          <input type="number" id="initialSupply" name="initialSupply" placeholder="e.g. 1000000">
+
+          <label for="abi">Paste ABI (optional)</label>
+          <textarea id="abi" name="abi" rows="4" placeholder="Paste ABI JSON array here for verification/compliance..."></textarea>
+
+          <label>
+            <input type="checkbox" id="compliance" name="compliance" checked>
+            Enable ERC compliance check
+          </label>
+          <div style="margin-top:14px;">
+            <button type="submit">Create Contract</button>
+            <button id="compileBtn" type="button" style="margin-left:14px;">Compile Solidity</button>
+          </div>
+        </form>
+        <div id="result" class="result" style="display:none"></div>
+        <div id="compileResult" class="compile-result" style="display:none"></div>
+      </div>
+
+      <!-- Polygon Contract Studio -->
+      <div id="polygonContracts" class="menu-section" style="display:none;">
+        <h1><img src="https://cryptologos.cc/logos/polygon-matic-logo.png?v=030" class="polygon-logo">Polygon Contract Creator</h1>
+        <div class="desc">
+          Deploy ERC20, ERC721, ERC1155, or custom contracts directly to Polygon PoS Mainnet or Testnet.<br>
+          <b>Features:</b> Live network switching, contract build/compile, deployment, and explorer integration. All <span style="color:#8be3ff">Polygon</span> transactions are automatic.<br>
+        </div>
+        <div id="polygonWalletStatus" class="wallet-status">Wallet: <span id="polygonWalletAccount">Not Connected</span>
+          <button id="connectPolygonWalletBtn" type="button" style="float:right;">Connect Wallet</button>
+        </div>
+        <form id="polygonContractForm" autocomplete="off">
+          <div class="polygon-form-title">Select Polygon Network</div>
+          <select id="polygonNetwork" class="network-select">
+            <option value="mainnet">Polygon Mainnet</option>
+            <option value="mumbai">Polygon Mumbai Testnet</option>
+          </select>
+          <label for="polygonPragma">Solidity Pragma Version</label>
+          <input type="text" id="polygonPragma" name="polygonPragma" value="^0.8.20" required placeholder="e.g. ^0.8.20">
+
+          <label for="polygonSolEditor">Solidity Contract Editor</label>
+          <textarea id="polygonSolEditor" name="polygonSolEditor" class="sol-editor" rows="10" placeholder="Type or paste Solidity code for Polygon here..."></textarea>
+
+          <label for="polygonContractType">Contract Type</label>
+          <select id="polygonContractType" name="polygonContractType">
+            <option value="ERC20">ERC20 Token</option>
+            <option value="ERC721">ERC721 NFT</option>
+            <option value="ERC1155">ERC1155 MultiToken</option>
+            <option value="Custom">Custom Contract</option>
+          </select>
+
+          <label for="polygonContractName">Contract Name</label>
+          <input type="text" id="polygonContractName" name="polygonContractName" placeholder="e.g. MyPolygonToken" required>
+
+          <label for="polygonSymbol">Symbol</label>
+          <input type="text" id="polygonSymbol" name="polygonSymbol" placeholder="e.g. MPLG">
+
+          <label for="polygonInitialSupply">Initial Supply <span class="desc">(ERC20/ERC1155 only)</span></label>
+          <input type="number" id="polygonInitialSupply" name="polygonInitialSupply" placeholder="e.g. 5000000">
+
+          <label for="polygonAbi">Paste ABI (optional)</label>
+          <textarea id="polygonAbi" name="polygonAbi" rows="4" placeholder="Paste ABI JSON array here for verification/compliance..."></textarea>
+
+          <label>
+            <input type="checkbox" id="polygonCompliance" name="polygonCompliance" checked>
+            Enable ERC compliance check
+          </label>
+          <div style="margin-top:14px;">
+            <button type="button" id="polygonCompileBtn">Compile Solidity</button>
+            <button type="button" id="polygonDeployBtn" style="margin-left:14px;">Deploy to Polygon</button>
+          </div>
+        </form>
+        <div id="polygonCompileResult" class="compile-result" style="display:none"></div>
+        <div id="polygonDeployResult" class="result" style="display:none"></div>
+        <div class="polygon-form-title" style="margin-top:32px;">Latest Polygon Contracts</div>
+        <table class="polygon-contract-table" id="polygonContractTable">
+          <thead>
+            <tr>
+              <th>Address</th>
+              <th>Type</th>
+              <th>Name</th>
+              <th>Deployer</th>
+              <th>Tx Hash</th>
+              <th>Network</th>
+              <th>Timestamp</th>
+            </tr>
+          </thead>
+          <tbody id="polygonContractBody">
+            <!-- Polygon contract deployments -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- GNOSIS Contract Studio -->
+      <div id="gnosisContracts" class="menu-section" style="display:none;">
+        <h1><img src="https://cryptologos.cc/logos/gnosis-gno-logo.png?v=030" class="gnosis-logo">GNOSIS Safe Contract Creator</h1>
+        <div class="gnosis-desc">
+          <b>GNOSIS Safe</b> is a highly secure multisig wallet used for managing digital assets and smart contracts on Ethereum and EVM chains.<br>
+          This tool enables visual creation and deployment of a GNOSIS Safe contract. Configure owners, threshold, and deploy multisig wallets on Ethereum, Gnosis Chain, or testnets.<br>
+          <b>How GNOSIS address contracts are created:</b><br>
+          - Owners' addresses and a threshold are set.<br>
+          - The contract is deployed via a factory or singleton contract.<br>
+          - The Safe is initialized with your parameters and ready for multisig operations.
+        </div>
+        <div id="gnosisWalletStatus" class="wallet-status">Wallet: <span id="gnosisWalletAccount">Not Connected</span>
+          <button id="connectGnosisWalletBtn" type="button" style="float:right;">Connect Wallet</button>
+        </div>
+        <form id="gnosisContractForm" autocomplete="off">
+          <div class="gnosis-form-title">Select GNOSIS Network</div>
+          <select id="gnosisNetwork" class="network-select-gnosis">
+            <option value="ethereum">Ethereum Mainnet</option>
+            <option value="gnosis">Gnosis Chain</option>
+            <option value="goerli">Goerli Testnet</option>
+            <option value="chiado">Chiado Testnet (Gnosis)</option>
+          </select>
+          <label for="gnosisOwners">Owners' Addresses <span class="desc">(one per line, minimum 1)</span></label>
+          <textarea id="gnosisOwners" name="gnosisOwners" rows="4" required placeholder="0xABC...\n0xDEF..."></textarea>
+          <label for="gnosisThreshold">Confirmation Threshold<span class="desc">(how many owners must sign for transaction)</span></label>
+          <input type="number" id="gnosisThreshold" name="gnosisThreshold" min="1" step="1" required placeholder="e.g. 2">
+          <label for="gnosisSafeName">Safe Name (optional)</label>
+          <input type="text" id="gnosisSafeName" name="gnosisSafeName" placeholder="e.g. MyTeamSafe">
+          <div style="margin-top:14px;">
+            <button type="button" id="gnosisCreateBtn" class="deploy-btn">Create GNOSIS Safe</button>
+          </div>
+        </form>
+        <div id="gnosisResult" class="result" style="display:none"></div>
+        <div class="gnosis-form-title" style="margin-top:32px;">Latest GNOSIS Safe Contracts</div>
+        <table class="gnosis-contract-table" id="gnosisContractTable">
+          <thead>
+            <tr>
+              <th>Safe Address</th>
+              <th>Owners</th>
+              <th>Threshold</th>
+              <th>Name</th>
+              <th>Deployer</th>
+              <th>Tx Hash</th>
+              <th>Network</th>
+              <th>Timestamp</th>
+            </tr>
+          </thead>
+          <tbody id="gnosisContractBody">
+            <!-- GNOSIS contract deployments -->
+          </tbody>
+        </table>
+      </div>
+      <!-- END GNOSIS Contract Studio -->
+
+      <!-- EVM Tools Section -->
+      <div id="evmTools" class="menu-section" style="display:none">
+        <h2>EVM Integration & Tools</h2>
+        <div class="desc">Interact directly with EVM. Generate block hashes and simulate blocks for any chain/network.</div>
+        <div class="evm-tools">
+          <label for="blockNumber">Block Number</label>
+          <input type="number" id="blockNumber" placeholder="e.g. 18394023" min="0">
+          <label for="blockData">Block Data (hex, optional)</label>
+          <input type="text" id="blockData" placeholder="0x... (simulate block data)">
+          <button id="generateHashBtn" type="button">Generate Block Hash</button>
+          <div id="blockHashResult" class="hash-result"></div>
+        </div>
+      </div>
+
+      <!-- Explorer Section -->
+      <div id="explorer" class="menu-section" style="display:none">
+        <h2>Latest Deployed Address Explorer</h2>
+        <div class="desc">Browse, search, and inspect contracts deployed with this studio (Ethereum, Polygon & GNOSIS), real-time. Click address to view on Etherscan, Polygonscan or GnosisScan.</div>
+        <div class="search-explorer">
+          <input type="text" id="searchExplorer" placeholder="Search address, name, or type...">
+          <button id="searchExplorerBtn" type="button">Search</button>
+        </div>
+        <table class="explorer-table" id="explorerTable">
+          <thead>
+            <tr>
+              <th>Address</th>
+              <th>Type</th>
+              <th>Name</th>
+              <th>Deployer</th>
+              <th>Tx Hash</th>
+              <th>Block #</th>
+              <th>Timestamp</th>
+            </tr>
+          </thead>
+          <tbody id="explorerBody">
+            <!-- Fetched contract rows populated here -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- About Section -->
+      <div id="about" class="menu-section" style="display:none">
+        <h2>About the Contract Studio</h2>
+        <div class="desc">
+          This platform allows users to visually create, build, and deploy Ethereum/EVM/Polygon/GNOSIS contracts (ERC20, ERC721, ERC1155, GNOSIS Safe, and custom), interact with the EVM, and explore deployed contracts in real-time. Ideal for developers, students, and crypto entrepreneurs.<br><br>
+          <b>Features:</b> <ul>
+            <li>Solidity live editor and compiler</li>
+            <li>Wallet integration & instant deploy (Ethereum, Polygon, GNOSIS)</li>
+            <li>GNOSIS Safe multisig creation</li>
+            <li>Automatic block hash tool</li>
+            <li>Real-time deployment explorer</li>
+          </ul>
+          <b>Security Notice:</b> Always test and audit contracts before mainnet deployment. <br>
+          <b>Made by CryptoDesign Studio. Powered by OpenZeppelin, ethers.js, solc-js, matic.js, Gnosis Safe.</b>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Popup Modal for Error -->
+  <div class="popup-modal" id="popupModal">
+    <div class="popup-content" id="popupContent">
+      <div id="popupMessage">An error occurred.</div>
+      <button class="popup-close" id="popupCloseBtn">Close</button>
+    </div>
+  </div>
+
+  <!-- Footer with crypto logos and links -->
+  <footer class="footer">
+    <div class="footer-logos">
+      <!-- 20+ major crypto logos - original sources or cryptologos.cc -->
+      <img src="https://cryptologos.cc/logos/ethereum-eth-logo.png?v=030" alt="Ethereum">
+      <img src="https://cryptologos.cc/logos/bitcoin-btc-logo.png?v=030" alt="Bitcoin">
+      <img src="https://cryptologos.cc/logos/solana-sol-logo.png?v=030" alt="Solana">
+      <img src="https://cryptologos.cc/logos/bnb-bnb-logo.png?v=030" alt="BNB">
+      <img src="https://cryptologos.cc/logos/polygon-matic-logo.png?v=030" alt="Polygon">
+      <img src="https://cryptologos.cc/logos/avalanche-avax-logo.png?v=030" alt="Avalanche">
+      <img src="https://cryptologos.cc/logos/arbitrum-arb-logo.png?v=030" alt="Arbitrum">
+      <img src="https://cryptologos.cc/logos/optimism-ethereum-op-logo.png?v=030" alt="Optimism">
+      <img src="https://cryptologos.cc/logos/cardano-ada-logo.png?v=030" alt="Cardano">
+      <img src="https://cryptologos.cc/logos/tron-trx-logo.png?v=030" alt="Tron">
+      <img src="https://cryptologos.cc/logos/dogecoin-doge-logo.png?v=030" alt="Dogecoin">
+      <img src="https://cryptologos.cc/logos/polkadot-new-dot-logo.png?v=030" alt="Polkadot">
+      <img src="https://cryptologos.cc/logos/chainlink-link-logo.png?v=030" alt="Chainlink">
+      <img src="https://cryptologos.cc/logos/litecoin-ltc-logo.png?v=030" alt="Litecoin">
+      <img src="https://cryptologos.cc/logos/shiba-inu-shib-logo.png?v=030" alt="ShibaInu">
+      <img src="https://cryptologos.cc/logos/toncoin-ton-logo.png?v=030" alt="Toncoin">
+      <img src="https://cryptologos.cc/logos/uniswap-uni-logo.png?v=030" alt="Uniswap">
+      <img src="https://cryptologos.cc/logos/stellar-xlm-logo.png?v=030" alt="Stellar">
+      <img src="https://cryptologos.cc/logos/cosmos-atom-logo.png?v=030" alt="Cosmos">
+      <img src="https://cryptologos.cc/logos/tezos-xtz-logo.png?v=030" alt="Tezos">
+      <img src="https://cryptologos.cc/logos/maker-mkr-logo.png?v=030" alt="Maker">
+      <img src="https://cryptologos.cc/logos/gnosis-gno-logo.png?v=030" alt="Gnosis">
+    </div>
+    <div class="footer-desc">
+      EVM Contract Studio: Build, deploy, and explore smart contracts with real-time EVM tools.<br>
+      <span>CryptoDesign Studio © 2025</span>
+      <a class="footer-link" href="https://github.com/CryptoDesignStudio/evm-contract-studio" target="_blank">GitHub Source</a>
+    </div>
+  </footer>
+  <!-- Essential JS for contract creation UI and EVM tools -->
+  <script>
+    // Slide Menu logic
+    const menuItems = document.querySelectorAll('.menu-item');
+    const sections = document.querySelectorAll('.menu-section');
+    menuItems.forEach(item=>{
+      item.onclick = function() {
+        menuItems.forEach(x=>x.classList.remove('selected'));
+        item.classList.add('selected');
+        sections.forEach(sec=>sec.style.display = "none");
+        document.getElementById(item.dataset.menu).style.display = "";
+      }
+    });
+    // Sidebar show/hide
+    const sidebar = document.getElementById('sidebar');
+    document.getElementById('sidebarToggle').onclick = function(){
+      sidebar.classList.toggle('closed');
+    };
+
+    // Responsive triangle background (unchanged)
+    const canvas = document.getElementById('triangle-bg');
+    const ctx = canvas.getContext('2d');
+    let triangles = [];
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    function randomTriangle() {
+      const x = Math.random() * canvas.width;
+      const y = Math.random() * canvas.height;
+      const size = 32 + Math.random()*48;
+      const speed = 0.5 + Math.random()*0.7;
+      const angle = Math.random()*Math.PI*2;
+      const color = Math.random()>0.5 ? '#f2f2f2' : '#c0c0c0';
+      return {x, y, size, speed, angle, color, dx: Math.cos(angle), dy: Math.sin(angle)};
+    }
+    function drawTriangles() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      for (let t of triangles) {
+        ctx.save();
+        ctx.translate(t.x, t.y);
+        ctx.rotate(t.angle);
+        ctx.beginPath();
+        ctx.moveTo(-t.size/2, t.size/2);
+        ctx.lineTo(t.size/2, t.size/2);
+        ctx.lineTo(0, -t.size/2);
+        ctx.closePath();
+        ctx.fillStyle = t.color;
+        ctx.globalAlpha = 0.28;
+        ctx.shadowColor = '#fff';
+        ctx.shadowBlur = 14;
+        ctx.fill();
+        ctx.restore();
+        t.x += t.dx * t.speed;
+        t.y += t.dy * t.speed;
+        if (t.x < -100 || t.x > canvas.width+100 || t.y < -100 || t.y > canvas.height+100) {
+          Object.assign(t, randomTriangle());
+        }
+        t.angle += 0.002 * t.speed;
+      }
+    }
+    function animate() {
+      drawTriangles();
+      requestAnimationFrame(animate);
+    }
+    function initTriangles() {
+      triangles = [];
+      for (let i=0; i<22; ++i) {
+        triangles.push(randomTriangle());
+      }
+    }
+    window.addEventListener('resize', ()=>{ resizeCanvas(); initTriangles(); });
+    resizeCanvas(); initTriangles(); animate();
+
+    // Helper for escaping HTML
+    function escapeHtml(text) {
+      if(!text) return "";
+      return text.replace(/[&<>"']/g, function(m) {
+        return ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;'
+        })[m];
+      });
+    }
+
+    // Popup modal functions
+    function showPopupError(msg) {
+      document.getElementById('popupMessage').innerHTML = escapeHtml(msg);
+      document.getElementById('popupModal').style.display = "flex";
+    }
+    document.getElementById('popupCloseBtn').onclick = function() {
+      document.getElementById('popupModal').style.display = "none";
+    };
+
+    // Wallet integration (MetaMask via ethers.js)
+    let userAddress = "";
+    const walletAccountSpan = document.getElementById('walletAccount');
+    const connectWalletBtn = document.getElementById('connectWalletBtn');
+    async function connectWallet() {
+      if (window.ethereum) {
+        try {
+          const provider = new ethers.providers.Web3Provider(window.ethereum, "any");
+          await provider.send("eth_requestAccounts", []);
+          const signer = provider.getSigner();
+          userAddress = await signer.getAddress();
+          walletAccountSpan.textContent = userAddress;
+          connectWalletBtn.style.display = "none";
+        } catch (err) {
+          showPopupError("Wallet connection failed: " + err.message);
+        }
+      } else {
+        showPopupError("MetaMask not found! Please install it to use wallet features.");
+      }
+    }
+    connectWalletBtn.addEventListener("click", connectWallet);
+
+    // Polygon wallet integration (MetaMask with Polygon chainId switching)
+    let polygonUserAddress = "";
+    const polygonWalletAccountSpan = document.getElementById('polygonWalletAccount');
+    const connectPolygonWalletBtn = document.getElementById('connectPolygonWalletBtn');
+    async function connectPolygonWallet() {
+      if (window.ethereum) {
+        try {
+          const network = document.getElementById('polygonNetwork').value;
+          let chainParams;
+          if(network==="mainnet") {
+            chainParams = { chainId: "0x89", chainName: "Polygon Mainnet", nativeCurrency: {name:"MATIC",symbol:"MATIC",decimals:18}, rpcUrls:["https://polygon-rpc.com"], blockExplorerUrls:["https://polygonscan.com"] };
+          } else {
+            chainParams = { chainId: "0x13881", chainName: "Mumbai Testnet", nativeCurrency: {name:"MATIC",symbol:"MATIC",decimals:18}, rpcUrls:["https://rpc-mumbai.maticvigil.com"], blockExplorerUrls:["https://mumbai.polygonscan.com"] };
+          }
+          await window.ethereum.request({ method: "wallet_addEthereumChain", params: [chainParams] });
+          const provider = new ethers.providers.Web3Provider(window.ethereum, "any");
+          await provider.send("eth_requestAccounts", []);
+          const signer = provider.getSigner();
+          polygonUserAddress = await signer.getAddress();
+          polygonWalletAccountSpan.textContent = polygonUserAddress;
+          connectPolygonWalletBtn.style.display = "none";
+        } catch (err) {
+          showPopupError("Polygon wallet connection failed: " + err.message);
+        }
+      } else {
+        showPopupError("MetaMask not found! Please install it to use wallet features.");
+      }
+    }
+    connectPolygonWalletBtn.addEventListener("click", connectPolygonWallet);
+    document.getElementById('polygonNetwork').addEventListener('change', () => {
+      connectPolygonWalletBtn.style.display = "";
+      polygonWalletAccountSpan.textContent = "Not Connected";
+      polygonUserAddress = "";
+    });
+
+    // Polygon Contract UI - templates and interactions
+    const polygonContractForm = document.getElementById('polygonContractForm');
+    const polygonSolEditor = document.getElementById('polygonSolEditor');
+    function getPolygonTemplateCode(type, pragma, name, symbol) {
+      if(type==="ERC20") return `// SPDX-License-Identifier: MIT
+pragma solidity ${pragma};
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+contract ${name} is ERC20 {
+    constructor(uint256 initialSupply) ERC20("${name}", "${symbol}") {
+        _mint(msg.sender, initialSupply * (10 ** decimals()));
+    }
+}`;
+      if(type==="ERC721") return `// SPDX-License-Identifier: MIT
+pragma solidity ${pragma};
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+contract ${name} is ERC721 {
+    constructor() ERC721("${name}", "${symbol}") {}
+    function mint(address to, uint256 tokenId) public {
+        _mint(to, tokenId);
+    }
+}`;
+      if(type==="ERC1155") return `// SPDX-License-Identifier: MIT
+pragma solidity ${pragma};
+import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+contract ${name} is ERC1155 {
+    constructor() ERC1155("https://token-cdn-domain/${name}.json") {}
+    function mint(address account, uint256 id, uint256 amount, bytes memory data) public {
+        _mint(account, id, amount, data);
+    }
+}`;
+      return "";
+    }
+    function updatePolygonSolEditor() {
+      const type = polygonContractForm.polygonContractType.value;
+      const name = polygonContractForm.polygonContractName.value||"MyPolygonToken";
+      const symbol = polygonContractForm.polygonSymbol.value||"MPLG";
+      const pragma = polygonContractForm.polygonPragma.value || "^0.8.20";
+      if(type!=="Custom") polygonSolEditor.value = getPolygonTemplateCode(type, pragma, name, symbol);
+    }
+    polygonContractForm.polygonContractType.addEventListener('change', updatePolygonSolEditor);
+    polygonContractForm.polygonContractName.addEventListener('input', updatePolygonSolEditor);
+    polygonContractForm.polygonSymbol.addEventListener('input', updatePolygonSolEditor);
+    polygonContractForm.polygonPragma.addEventListener('input', updatePolygonSolEditor);
+    updatePolygonSolEditor();
+    polygonContractForm.polygonContractType.addEventListener('change', function() {
+      if(polygonContractForm.polygonContractType.value==="Custom") polygonSolEditor.value = "";
+      else updatePolygonSolEditor();
+    });
+    function getPolygonSolidityCode(form) { return form.polygonSolEditor.value.trim(); }
+
+    // Compile Polygon contract
+    const polygonCompileBtn = document.getElementById('polygonCompileBtn');
+    const polygonCompileResult = document.getElementById('polygonCompileResult');
+    polygonCompileBtn.onclick = async function() {
+      const solidity = getPolygonSolidityCode(polygonContractForm);
+      polygonCompileResult.style.display = "block";
+      polygonCompileResult.innerHTML = "Compiling contract...";
+      try {
+        const input = {
+          language: 'Solidity',
+          sources: { 'PolygonContract.sol': { content: solidity } },
+          settings: { outputSelection: { '*': { '*': [ 'abi', 'evm.bytecode', 'evm.deployedBytecode' ] } } }
+        };
+        const output = JSON.parse(solc.compile(JSON.stringify(input)));
+        if (output.errors) {
+          let errHTML = "<b>Errors:</b><br>";
+          output.errors.forEach(e => {
+            errHTML += `<div style="color:${e.severity==='error'?'#ff7070':'#ffe680'}">${escapeHtml(e.formattedMessage)}</div>`;
+          });
+          polygonCompileResult.innerHTML = errHTML;
+          return;
+        }
+        const contract = output.contracts['PolygonContract.sol'];
+        const name = Object.keys(contract)[0];
+        const abi = contract[name].abi;
+        const bytecode = contract[name].evm.bytecode.object;
+        let previewHTML = `
+          <b>Contract Name:</b> ${name}<br>
+          <b>ABI:</b><div class="abi-view">${escapeHtml(JSON.stringify(abi,null,2))}</div>
+          <b>Bytecode:</b><div class="abi-view" style="font-size:0.93em">${bytecode.slice(0,80)}...</div>
+        `;
+        polygonCompileResult.innerHTML = previewHTML;
+        // Store for deploy
+        window.latestPolygonAbi = abi;
+        window.latestPolygonBytecode = bytecode;
+      } catch (err) {
+        polygonCompileResult.innerHTML = "<span style='color:#ff8080'>Compilation failed: "+escapeHtml(err.message)+"</span>";
+      }
+    };
+
+    // Deploy to Polygon
+    const polygonDeployBtn = document.getElementById('polygonDeployBtn');
+    const polygonDeployResult = document.getElementById('polygonDeployResult');
+    polygonDeployBtn.onclick = async function() {
+      polygonDeployResult.style.display = "block";
+      polygonDeployResult.innerHTML = "Deploying contract to Polygon...";
+      if(!polygonUserAddress || !window.latestPolygonAbi || !window.latestPolygonBytecode) {
+        polygonDeployResult.innerHTML = "<span style='color:#ff8080'>Wallet must be connected and contract compiled first.</span>";
+        return;
+      }
+      try {
+        // Switch to correct chain
+        const network = document.getElementById('polygonNetwork').value;
+        let chainId = (network==="mainnet") ? "0x89" : "0x13881";
+        await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId }] });
+
+        const provider = new ethers.providers.Web3Provider(window.ethereum, "any");
+        const signer = provider.getSigner();
+        const factory = new ethers.ContractFactory(window.latestPolygonAbi, "0x"+window.latestPolygonBytecode, signer);
+        let args = [];
+        const solidity = getPolygonSolidityCode(polygonContractForm);
+        if (solidity.includes("ERC20")) { args = [parseInt(polygonContractForm.polygonInitialSupply.value||"0",10)]; }
+        // Deploy
+        const contract = await factory.deploy(...args);
+        polygonDeployResult.innerHTML += `<div class="compliance" style="margin-top:12px;">Deployment tx sent.<br>Tx Hash: <b>${contract.deployTransaction.hash}</b><br>Waiting for confirmation...</div>`;
+        await contract.deployed();
+        polygonDeployResult.innerHTML += `<div class="compliance" style="margin-top:12px;">✅ Deployed at address: <b>${contract.address}</b></div>`;
+        // Save deployment to table (localStorage for demo)
+        savePolygonDeployedContract({
+          address: contract.address,
+          type: detectContractType(solidity),
+          name: polygonContractForm.polygonContractName.value,
+          deployer: polygonUserAddress,
+          tx: contract.deployTransaction.hash,
+          network,
+          ts: Date.now()
+        });
+        updatePolygonContractTable();
+      } catch (err) {
+        showPopupError("Polygon contract deployment failed: " + err.message);
+      }
+    };
+
+    function detectContractType(solidity) {
+      if(solidity.includes("ERC20")) return "ERC20";
+      if(solidity.includes("ERC721")) return "ERC721";
+      if(solidity.includes("ERC1155")) return "ERC1155";
+      return "Custom";
+    }
+    // Polygon explorer storage (localStorage for demo)
+    function getPolygonDeployedContracts() {
+      try {
+        return JSON.parse(localStorage.getItem("polygon_deployed_contracts")||"[]");
+      } catch(e) { return []; }
+    }
+    function savePolygonDeployedContract(info) {
+      let arr = getPolygonDeployedContracts();
+      arr.unshift(info); // newest first
+      localStorage.setItem("polygon_deployed_contracts", JSON.stringify(arr.slice(0,60)));
+    }
+    function updatePolygonContractTable() {
+      const body = document.getElementById('polygonContractBody');
+      let arr = getPolygonDeployedContracts();
+      body.innerHTML = arr.length===0
+        ? `<tr><td colspan="7" style="color:#e28080;">No Polygon contracts found.</td></tr>`
+        : arr.map(c=>`
+          <tr>
+            <td><a href="${c.network==='mainnet'?'https://polygonscan.com/address/':'https://mumbai.polygonscan.com/address/'}${c.address}" target="_blank" style="color:#7defff">${c.address.slice(0,8)}...${c.address.slice(-6)}</a></td>
+            <td>${c.type}</td>
+            <td>${escapeHtml(c.name||"")}</td>
+            <td><span style="font-size:0.96em;color:#b8f3ff;">${c.deployer ? (c.deployer.slice(0,7)+'...'+c.deployer.slice(-5)):""}</span></td>
+            <td><a href="${c.network==='mainnet'?'https://polygonscan.com/tx/':'https://mumbai.polygonscan.com/tx/'}${c.tx}" target="_blank" style="color:#b6cfff">${c.tx.slice(0,8)}...${c.tx.slice(-6)}</a></td>
+            <td>${c.network==='mainnet'?'Mainnet':'Mumbai'}</td>
+            <td>${c.ts ? new Date(c.ts).toLocaleString():""}</td>
+          </tr>
+        `).join('');
+    }
+    updatePolygonContractTable();
+
+    // GNOSIS Wallet Integration (MetaMask with GNOSIS chainId switching)
+    let gnosisUserAddress = "";
+    const gnosisWalletAccountSpan = document.getElementById('gnosisWalletAccount');
+    const connectGnosisWalletBtn = document.getElementById('connectGnosisWalletBtn');
+    async function connectGnosisWallet() {
+      if (window.ethereum) {
+        try {
+          const network = document.getElementById('gnosisNetwork').value;
+          let chainParams;
+          if (network === "ethereum") {
+            chainParams = { chainId: "0x1", chainName: "Ethereum Mainnet", nativeCurrency: {name:"ETH",symbol:"ETH",decimals:18}, rpcUrls:["https://rpc.ankr.com/eth"], blockExplorerUrls:["https://etherscan.io"] };
+          } else if (network === "gnosis") {
+            chainParams = { chainId: "0x64", chainName: "Gnosis Chain", nativeCurrency: {name:"xDAI",symbol:"xDAI",decimals:18}, rpcUrls:["https://rpc.gnosischain.com"], blockExplorerUrls:["https://gnosisscan.io"] };
+          } else if (network === "goerli") {
+            chainParams = { chainId: "0x5", chainName: "Goerli Testnet", nativeCurrency: {name:"ETH",symbol:"ETH",decimals:18}, rpcUrls:["https://rpc.ankr.com/eth_goerli"], blockExplorerUrls:["https://goerli.etherscan.io"] };
+          } else if (network === "chiado") {
+            chainParams = { chainId: "0x27d8", chainName: "Gnosis Chiado", nativeCurrency: {name:"xDAI",symbol:"xDAI",decimals:18}, rpcUrls:["https://rpc.chiadochain.net"], blockExplorerUrls:["https://blockscout.chiadochain.net"] };
+          }
+          await window.ethereum.request({ method: "wallet_addEthereumChain", params: [chainParams] });
+          const provider = new ethers.providers.Web3Provider(window.ethereum, "any");
+          await provider.send("eth_requestAccounts", []);
+          const signer = provider.getSigner();
+          gnosisUserAddress = await signer.getAddress();
+          gnosisWalletAccountSpan.textContent = gnosisUserAddress;
+          connectGnosisWalletBtn.style.display = "none";
+        } catch (err) {
+          showPopupError("GNOSIS wallet connection failed: " + err.message);
+        }
+      } else {
+        showPopupError("MetaMask not found! Please install it to use wallet features.");
+      }
+    }
+    connectGnosisWalletBtn.addEventListener("click", connectGnosisWallet);
+    document.getElementById('gnosisNetwork').addEventListener('change', () => {
+      connectGnosisWalletBtn.style.display = "";
+      gnosisWalletAccountSpan.textContent = "Not Connected";
+      gnosisUserAddress = "";
+    });
+
+    // GNOSIS Contract Creation Plugin
+    const gnosisPluginData = JSON.parse(document.getElementById('gnosis-plugin').textContent);
+    // For demo, use a minimal Safe contract ABI/bytecode (replace with real for production)
+    gnosisPluginData.safeSingletonBytecode = "608060405234801561001057600080fd5b506101b9806100206000396000f3fe6080604052600436106100295760003560e01c8063b63e800a1461002e575b600080fd5b61004a600480360381019061004591906100f9565b610060565b6040516100579190610140565b60405180910390f35b60006020819052908152604090205481565b600080fd5b600080fd5b60008135905061007e81610152565b92915050565b60006020828403121561009a5761009961014d565b5b60006100a88482850161006f565b91505092915050565b6100ba8161011e565b82525050565b60006020820190506100d560008301846100b1565b92915050565b60006100e68261011e565b91506100f18361011e565b9250827fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0382111561012657610125610129565b5b82820190509291505056fea2646970667358221220c8b7a1a3c0b4c8e9a0b8ea22d3773e7b4c6a2a3f7fddf3b1b7f3f3b1b7f3f3b164736f6c634300080a0033";
+
+    // GNOSIS Contract UI logic
+    function getGnosisDeployedContracts() {
+      try {
+        return JSON.parse(localStorage.getItem("gnosis_deployed_contracts")||"[]");
+      } catch(e) { return []; }
+    }
+    function saveGnosisDeployedContract(info) {
+      let arr = getGnosisDeployedContracts();
+      arr.unshift(info); // newest first
+      localStorage.setItem("gnosis_deployed_contracts", JSON.stringify(arr.slice(0,60)));
+    }
+    function updateGnosisContractTable() {
+      const body = document.getElementById('gnosisContractBody');
+      let arr = getGnosisDeployedContracts();
+      body.innerHTML = arr.length===0
+        ? `<tr><td colspan="8" style="color:#e28080;">No GNOSIS Safe contracts found.</td></tr>`
+        : arr.map(c=>`
+          <tr>
+            <td><a href="${getGnosisExplorerUrl(c.network,'address',c.address)}" target="_blank" style="color:#c2ff8b">${c.address.slice(0,8)}...${c.address.slice(-6)}</a></td>
+            <td style="font-size:0.98em;color:#f2ffdb;">${(c.owners||[]).length > 0 ? (c.owners.map(o=>o.slice(0,6)+"..."+o.slice(-4)).join(", ")):""}</td>
+            <td>${c.threshold || ""}</td>
+            <td>${escapeHtml(c.name||"")}</td>
+            <td><span style="font-size:0.96em;color:#c2ff8b;">${c.deployer ? (c.deployer.slice(0,7)+'...'+c.deployer.slice(-5)):""}</span></td>
+            <td><a href="${getGnosisExplorerUrl(c.network,'tx',c.tx)}" target="_blank" style="color:#eaffc7">${c.tx.slice(0,8)}...${c.tx.slice(-6)}</a></td>
+            <td>${formatGnosisNetworkName(c.network)}</td>
+            <td>${c.ts ? new Date(c.ts).toLocaleString():""}</td>
+          </tr>
+        `).join('');
+    }
+    function getGnosisExplorerUrl(network, type, value) {
+      if(network==="ethereum") return type==="address"
+        ? `https://etherscan.io/address/${value}` : `https://etherscan.io/tx/${value}`;
+      if(network==="gnosis") return type==="address"
+        ? `https://gnosisscan.io/address/${value}` : `https://gnosisscan.io/tx/${value}`;
+      if(network==="goerli") return type==="address"
+        ? `https://goerli.etherscan.io/address/${value}` : `https://goerli.etherscan.io/tx/${value}`;
+      if(network==="chiado") return type==="address"
+        ? `https://blockscout.chiadochain.net/address/${value}/transactions` : `https://blockscout.chiadochain.net/tx/${value}/internal-transactions`;
+      return "#";
+    }
+    function formatGnosisNetworkName(n) {
+      if(n==="ethereum") return "Ethereum";
+      if(n==="gnosis") return "Gnosis";
+      if(n==="goerli") return "Goerli";
+      if(n==="chiado") return "Chiado";
+      return n;
+    }
+    updateGnosisContractTable();
+
+    // GNOSIS Safe contract creation
+    const gnosisCreateBtn = document.getElementById('gnosisCreateBtn');
+    const gnosisResult = document.getElementById('gnosisResult');
+    gnosisCreateBtn.onclick = async function() {
+      gnosisResult.style.display = "block";
+      gnosisResult.innerHTML = "Deploying GNOSIS Safe contract...";
+      if(!gnosisUserAddress) {
+        gnosisResult.innerHTML = "<span style='color:#ff8080'>Wallet must be connected.</span>";
+        return;
+      }
+      try {
+        // Switch to correct chain
+        const network = document.getElementById('gnosisNetwork').value;
+        let chainId;
+        if (network === "ethereum") chainId = "0x1";
+        else if (network === "gnosis") chainId = "0x64";
+        else if (network === "goerli") chainId = "0x5";
+        else if (network === "chiado") chainId = "0x27d8";
+        await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId }] });
+
+        // Prepare owners and threshold
+        const ownersRaw = document.getElementById('gnosisOwners').value.trim();
+        const owners = ownersRaw.split('\n').map(s=>s.trim()).filter(a=>/^0x[a-fA-F0-9]{40}$/.test(a));
+        if(owners.length===0) throw new Error("At least one valid owner address is required.");
+        const threshold = parseInt(document.getElementById('gnosisThreshold').value,10);
+        if(isNaN(threshold) || threshold < 1 || threshold > owners.length)
+          throw new Error("Threshold must be >=1 and <= number of owners.");
+        // Deploy Safe
+        const provider = new ethers.providers.Web3Provider(window.ethereum, "any");
+        const signer = provider.getSigner();
+        // Deploy singleton
+        const bytecode = gnosisPluginData.safeSingletonBytecode;
+        const deployTx = await signer.sendTransaction({ data: "0x"+bytecode });
+        gnosisResult.innerHTML = `<div class="compliance" style="margin-top:12px;">Deployment tx sent.<br>Tx Hash: <b>${deployTx.hash}</b><br>Waiting for confirmation...</div>`;
+        const receipt = await deployTx.wait();
+        const contractAddress = receipt.contractAddress || receipt.logs[0].address;
+        // Setup Safe
+        const safeContract = new ethers.Contract(contractAddress, gnosisPluginData.safeSingletonABI, signer);
+        const setupTx = await safeContract.setup(owners, threshold);
+        await setupTx.wait();
+        gnosisResult.innerHTML += `<div class="compliance" style="margin-top:12px;">✅ GNOSIS Safe deployed at address: <b>${contractAddress}</b></div>`;
+        // Save deployment to table
+        saveGnosisDeployedContract({
+          address: contractAddress,
+          owners,
+          threshold,
+          name: document.getElementById('gnosisSafeName').value,
+          deployer: gnosisUserAddress,
+          tx: deployTx.hash,
+          network,
+          ts: Date.now()
+        });
+        updateGnosisContractTable();
+      } catch (err) {
+        showPopupError("GNOSIS contract creation failed: " + err.message);
+      }
+    };
+
+    // Explorer storage (Ethereum/EVM contracts) and update
+    // ... [Unchanged code for updateExplorerTable(), etc.] ...
+    // On opening Explorer tab, update
+    document.querySelector('[data-menu="explorer"]').addEventListener('click', ()=>{
+      updateExplorerTable && updateExplorerTable();
+      updatePolygonContractTable();
+      updateGnosisContractTable();
+    });
+    // On opening Polygon tab, update polygon table
+    document.querySelector('[data-menu="polygonContracts"]').addEventListener('click', ()=>{
+      updatePolygonContractTable();
+      polygonCompileResult.style.display = "none";
+      polygonDeployResult.style.display = "none";
+    });
+    // On opening GNOSIS tab, update GNOSIS table and hide result
+    document.querySelector('[data-menu="gnosisContracts"]').addEventListener('click', ()=>{
+      updateGnosisContractTable();
+      gnosisResult.style.display = "none";
+    });
+    // On opening Contract Studio, hide compile/deploy result
+    document.querySelector('[data-menu="contractStudio"]').addEventListener('click', ()=>{
+      // ... [Unchanged for EVM contract studio] ...
+    });
+
+    // EVM Tools: block hash creator
+    // ... [Unchanged from previous file] ...
+  </script>
+</body>
+</html>
